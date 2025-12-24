@@ -103,43 +103,43 @@ Open `notebooks/colab.ipynb` in Google Colab:
 
 ## Data Version Control (DVC)
 
-This template includes DVC for data versioning with Google Drive integration.
+This template includes DVC for data versioning with Google Drive integration. Both datasets and model weights are tracked using DVC and stored in the same Google Drive folder.
 
 ### Setting up DVC with Google Drive
 
-```bash
-# Initialize DVC (if not already done)
-dvc init
-
-# Configure Google Drive as remote storage
-dvc remote add -d gdrive gdrive://FOLDER_ID
-
-# Add data files to DVC tracking
-dvc add data/X_train.npy data/y_train.npy
-
-# Commit DVC files to Git
-git add data/X_train.npy.dvc data/y_train.npy.dvc data/.gitignore .dvc/config
-git commit -m "Add dataset with DVC"
-
-# Push data to Google Drive
-dvc push
-```
-
-### Getting the Google Drive Folder ID
+#### 1. Get Google Drive Folder ID
 
 1. Create a folder in your Google Drive for DVC storage
 2. Open the folder in your browser
 3. Copy the folder ID from the URL: `https://drive.google.com/drive/folders/FOLDER_ID`
-4. Use this ID when configuring the DVC remote
+
+#### 2. Configure DVC Manually
+
+Edit `.dvc/config` file to add Google Drive as remote storage
+
+#### 3. Track Data and Models with DVC
+
+```bash
+# Add data files to DVC tracking
+dvc add data/X_train.npy data/y_train.npy data/X_test.npy data/y_test.npy
+
+# Add model weights to DVC tracking
+dvc add models/default.keras
+
+# Commit DVC files to Git
+git add data/*.dvc data/.gitignore models/*.dvc models/.gitignore .dvc/config
+git commit -m "Add dataset and model weights with DVC"
+
+# Push data and model weights to Google Drive
+dvc push
+```
 
 ### Using DVC in Google Colab
 
-When working in Google Colab, you can easily pull data from your DVC remote:
+When working in Google Colab, you can easily pull data and model weights from your DVC remote:
 
 ```python
 # In your Colab notebook
 !pip install dvc[gdrive]
 !dvc pull
 ```
-
-DVC will authenticate with your Google Drive account and download the tracked data files automatically.

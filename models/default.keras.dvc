@@ -1,0 +1,5 @@
+outs:
+- md5: 9d1e5112d4f8533dc31ab59e01c9a63f
+  size: 14079
+  hash: md5
+  path: default.keras

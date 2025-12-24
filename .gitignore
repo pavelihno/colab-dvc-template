@@ -1,5 +1,4 @@
 db/
-models/
 mlruns/
 .venv/
 __pycache__/
