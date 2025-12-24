@@ -1,0 +1,30 @@
+# Default configuration for training and evaluation
+
+model:
+    name: default
+    input_dim: 10
+    output_dim: 1
+    activation: sigmoid
+
+training:
+    n_samples: 1000
+    learning_rate: 0.01
+    epochs: 50
+    batch_size: 32
+    validation_split: 0.2
+
+evaluation:
+    n_samples: 200
+    test_seed: 123
+
+paths:
+    model_dir: models
+    data_dir: data
+
+mlflow:
+    experiment_name: experiment_01
+    tracking_uri: http://localhost:5000
+
+data:
+    train_seed: 42
+    test_seed: 123
