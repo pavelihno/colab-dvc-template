@@ -6,6 +6,8 @@ import tensorflow as tf
 import mlflow
 import mlflow.tensorflow
 
+from mlflow.models import infer_signature
+
 from utils import load_config, generate_sample_data
 from model.sample import SampleNeuralNetwork
 
@@ -31,16 +33,18 @@ def train_model(config):
     n_samples = training_config['n_samples']
     validation_split = training_config['validation_split']
 
-    data_dir = data_config['data_dir']
     train_seed = data_config['train_seed']
 
-    model_dir = paths_config['model_dir']
-    experiment_name = mlflow_config['experiment_name']
-    tracking_uri = mlflow_config['tracking_uri']
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(base_dir, paths_config['data_dir'])
+    model_dir = os.path.join(base_dir, paths_config['model_dir'])
 
-    mlflow.set_experiment(experiment_name)
+    experiment_name = mlflow_config['experiment_name']
+    tracking_uri = mlflow_config.get('tracking_uri')
+
     if tracking_uri:
         mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(experiment_name)
 
     print('Generating training data...')
     X_train, y_train = generate_sample_data(
@@ -52,8 +56,11 @@ def train_model(config):
 
     print('Saving sample data...')
     os.makedirs(data_dir, exist_ok=True)
-    np.save(os.path.join(data_dir, 'X_train.npy'), X_train)
-    np.save(os.path.join(data_dir, 'y_train.npy'), y_train)
+    X_train_path = os.path.join(data_dir, 'X_train.npy')
+    y_train_path = os.path.join(data_dir, 'y_train.npy')
+    np.save(X_train_path, X_train)
+    np.save(y_train_path, y_train)
+    print(f'Data saved to: {data_dir}')
 
     with mlflow.start_run():
         mlflow.log_params({
@@ -120,12 +127,13 @@ def train_model(config):
 
         print(f'Saving model...')
         os.makedirs(model_dir, exist_ok=True)
-        model_path = os.path.join(model_dir, model_name)
+        model_path = os.path.join(model_dir, f"{model_name}.keras")
         model.save(model_path)
         print(f'Model saved to: {model_path}')
 
         print(f'Logging model to MLflow...')
-        mlflow.tensorflow.log_model(model, artifact_path='model')
+        signature = infer_signature(X_train, model.predict(X_train[:1]))
+        mlflow.tensorflow.log_model(model, name='model', signature=signature)
 
         run_id = mlflow.active_run().info.run_id
         print(f'Model logged to MLflow with run_id: {run_id}')

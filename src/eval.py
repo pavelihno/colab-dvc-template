@@ -6,6 +6,8 @@ import mlflow
 
 from utils import load_config, generate_sample_data
 
+from model.sample import SampleNeuralNetwork
+
 
 def evaluate_model(config, run_id=None):
     '''Evaluate the trained model on test data using configuration'''
@@ -14,28 +16,36 @@ def evaluate_model(config, run_id=None):
     model_config = config['model']
     eval_config = config['evaluation']
     data_config = config['data']
+    paths_config = config['paths']
     mlflow_config = config['mlflow']
 
     input_dim = model_config['input_dim']
     output_dim = model_config['output_dim']
+    activation = model_config['activation']
 
     n_samples = eval_config['n_samples']
 
-    data_dir = data_config['data_dir']
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(base_dir, paths_config['data_dir'])
     test_seed = data_config['test_seed']
 
     experiment_name = mlflow_config['experiment_name']
     tracking_uri = mlflow_config['tracking_uri']
 
-    mlflow.set_experiment(experiment_name)
     if tracking_uri:
         mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(experiment_name)
 
     if not run_id:
         raise ValueError('run_id is required to load the model from MLflow')
 
     model_uri = f'runs:/{run_id}/model'
     print(f'Loading model from MLflow run: {run_id}')
+    model = SampleNeuralNetwork(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        activation=activation,
+    )
     model = mlflow.tensorflow.load_model(model_uri)
 
     print('Generating test data...')

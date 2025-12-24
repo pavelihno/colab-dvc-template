@@ -103,20 +103,43 @@ Open `notebooks/colab.ipynb` in Google Colab:
 
 ## Data Version Control (DVC)
 
-This template includes DVC for data versioning. To use:
+This template includes DVC for data versioning with Google Drive integration.
+
+### Setting up DVC with Google Drive
 
 ```bash
 # Initialize DVC (if not already done)
 dvc init
 
-# Add data files
-dvc add data/my_dataset.csv
+# Configure Google Drive as remote storage
+dvc remote add -d gdrive gdrive://FOLDER_ID
 
-# Commit changes
-git add data/my_dataset.csv.dvc
-git commit -m "Add dataset"
+# Add data files to DVC tracking
+dvc add data/X_train.npy data/y_train.npy
 
-# Push to remote storage (configure first)
-dvc remote add -d storage s3://my-bucket/dvc-store
+# Commit DVC files to Git
+git add data/X_train.npy.dvc data/y_train.npy.dvc data/.gitignore .dvc/config
+git commit -m "Add dataset with DVC"
+
+# Push data to Google Drive
 dvc push
 ```
+
+### Getting the Google Drive Folder ID
+
+1. Create a folder in your Google Drive for DVC storage
+2. Open the folder in your browser
+3. Copy the folder ID from the URL: `https://drive.google.com/drive/folders/FOLDER_ID`
+4. Use this ID when configuring the DVC remote
+
+### Using DVC in Google Colab
+
+When working in Google Colab, you can easily pull data from your DVC remote:
+
+```python
+# In your Colab notebook
+!pip install dvc[gdrive]
+!dvc pull
+```
+
+DVC will authenticate with your Google Drive account and download the tracked data files automatically.

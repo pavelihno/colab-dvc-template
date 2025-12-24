@@ -1,0 +1,7 @@
+[core]
+    remote = gdrive
+['remote "gdrive"']
+    url = gdrive://<FOLDER_ID>
+    gdrive_acknowledge_abuse = true
+    gdrive_client_id = <CLIENT_ID>
+    gdrive_client_secret = <CLIENT_SECRET>
