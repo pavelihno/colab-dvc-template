@@ -92,12 +92,23 @@ Then open http://localhost:5000 in your browser to:
 
 ## Using in Google Colab
 
-Open `notebooks/colab.ipynb` in Google Colab:
+Open `notebooks/colab.ipynb` in Google Colab for a complete workflow:
 
-1. Upload the notebook to Google Colab
-2. Run the first cell to install requirements
-3. Mount your Google Drive if needed for data/model storage
-4. Run training and evaluation cells
+### Workflow Overview
+
+1. **Setup**: Install dependencies and clone repository
+2. **Configure DVC**: Set up Google Drive authentication with service account
+3. **Pull existing data**: Download any existing data/models/experiments from Google Drive
+4. **Train model**: Run training - MLflow tracks experiments locally in `./mlruns`
+5. **Evaluate model**: Test the trained model
+6. **Sync to cloud**: Push all artifacts (data, models, MLflow experiments) to Google Drive using DVC
+
+### Key Points
+
+- MLflow always stores experiments locally in `./mlruns` (same as local development)
+- After training/evaluation, use `dvc add mlruns` and `dvc push` to sync to Google Drive
+- On subsequent runs, `dvc pull` will restore your complete experiment history
+- This ensures MLflow data from Colab is accessible on your local machine and vice versa
 
 ## Data Version Control (DVC)
 
