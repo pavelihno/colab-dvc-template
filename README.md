@@ -1,4 +1,4 @@
-# colab-dvc-mlflow-template
+# Google Colab + DVC + MLflow template
 
 A machine learning project template with MLflow experiment tracking and DVC version control.
 
