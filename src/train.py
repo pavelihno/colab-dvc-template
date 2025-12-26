@@ -40,10 +40,7 @@ def train_model(config):
     model_dir = os.path.join(base_dir, paths_config['model_dir'])
 
     experiment_name = mlflow_config['experiment_name']
-    tracking_uri = mlflow_config.get('tracking_uri')
 
-    if tracking_uri:
-        mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment_name)
 
     print('Generating training data...')

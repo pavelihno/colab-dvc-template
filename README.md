@@ -29,10 +29,12 @@ pip install -r requirements.txt
 
 ### 2. Initialize MLflow
 
-MLflow will automatically create a local tracking directory. To view the MLflow UI:
+MLflow will automatically create a local tracking directory in `./mlruns`.
+
+To view the MLflow UI locally:
 
 ```bash
-mlflow server --backend-store-uri sqlite:///db/mlflow.db --registry-store-uri sqlite:///db/mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000
+mlflow ui
 ```
 
 Then open http://localhost:5000 in your browser.
@@ -53,8 +55,7 @@ The project uses YAML configuration files in the `configs/` directory to manage 
 Train using a specific config file:
 
 ```bash
-cd src
-python train.py --config ../configs/default.yaml
+python src/train.py --config configs/default.yaml
 ```
 
 The training script will output a **run_id** at the end, which you'll need for evaluation. Example output:
@@ -63,34 +64,31 @@ The training script will output a **run_id** at the end, which you'll need for e
 Model logged to MLflow with run_id: abc123def456...
 ```
 
-**Note:** The trained model is saved both locally (in `models/` directory) and logged to MLflow for experiment tracking and easy retrieval.
+**Note:** The trained model is saved both locally (in `models/` directory) and logged to MLflow (in `mlruns/` directory) for experiment tracking and easy retrieval.
 
 ### Evaluating a Model
 
 Evaluate a trained model using its MLflow run_id (obtained from training):
 
 ```bash
-cd src
-python eval.py --config ../configs/default.yaml --run_id <RUN_ID_FROM_TRAINING>
+python src/eval.py --config configs/default.yaml --run_id <RUN_ID_FROM_TRAINING>
 ```
 
 **Note:** The evaluation script loads the model directly from MLflow using the run_id, ensuring you're evaluating the exact model version that was logged during training.
 
 ### Viewing Results in MLflow
 
-1. Start the MLflow UI:
+Start the MLflow UI:
 
-    ```bash
-    mlflow server --backend-store-uri sqlite:///db/mlflow.db --registry-store-uri sqlite:///db/mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000
-    ```
+```bash
+mlflow ui
+```
 
-2. Open http://localhost:5000 in your browser
+Then open http://localhost:5000 in your browser to:
 
-3. Select your experiment
-
-4. View and compare different runs with their parameters and metrics
-
-5. Visualize training curves and download models
+- Select your experiment
+- View and compare different runs with their parameters and metrics
+- Visualize training curves and download models
 
 ## Using in Google Colab
 
@@ -103,21 +101,47 @@ Open `notebooks/colab.ipynb` in Google Colab:
 
 ## Data Version Control (DVC)
 
-This template includes DVC for data versioning with Google Drive integration. Both datasets and model weights are tracked using DVC and stored in the same Google Drive folder.
+This template uses DVC to version control large files and sync them with Google Drive. DVC tracks:
+- **Training/test data** (`data/` directory)
+- **Model weights** (`models/` directory)  
+- **MLflow artifacts** (`mlruns/` directory) - experiment tracking data
+
+This approach keeps your Git repository lightweight while ensuring all important assets are backed up to the cloud.
 
 ### Setting up DVC with Google Drive
 
-#### 1. Get Google Drive Folder ID
+#### 1. Initialize DVC (if not already done)
+
+```bash
+dvc init
+```
+
+#### 2. Get Google Drive Folder ID
 
 1. Create a folder in your Google Drive for DVC storage
 2. Open the folder in your browser
-3. Copy the folder ID from the URL: `https://drive.google.com/drive/folders/FOLDER_ID`
+3. Copy the folder ID from the URL: `https://drive.google.com/drive/folders/<FOLDER_ID>`
 
-#### 2. Configure DVC Manually
+#### 3. Configure DVC Remote
 
-Edit `.dvc/config` file to add Google Drive as remote storage
+```bash
+# Add Google Drive as remote storage
+dvc remote add -d gdrive gdrive://<FOLDER_ID>
 
-#### 3. Track Data and Models with DVC
+# Configure DVC to use Google Drive
+dvc remote modify gdrive gdrive_acknowledge_abuse true
+```
+
+Edit `.dvc/config` to verify it looks like:
+```ini
+[core]
+    remote = gdrive
+['remote "gdrive"']
+    url = gdrive://<FOLDER_ID>
+    gdrive_acknowledge_abuse = true
+```
+
+#### 4. Track Data, Models, and MLflow Artifacts with DVC
 
 ```bash
 # Add data files to DVC tracking
@@ -126,20 +150,21 @@ dvc add data/X_train.npy data/y_train.npy data/X_test.npy data/y_test.npy
 # Add model weights to DVC tracking
 dvc add models/default.keras
 
-# Commit DVC files to Git
-git add data/*.dvc data/.gitignore models/*.dvc models/.gitignore .dvc/config
-git commit -m "Add dataset and model weights with DVC"
+# Add MLflow artifacts (experiment tracking) to DVC tracking
+dvc add mlruns
 
-# Push data and model weights to Google Drive
+# Commit DVC files to Git
+git add data/*.dvc data/.gitignore models/*.dvc models/.gitignore mlruns.dvc
+git commit -m "Track data, models, and MLflow artifacts with DVC"
+
+# Push everything to Google Drive
 dvc push
 ```
 
-### Using DVC in Google Colab
+#### 5. Pulling Data on Another Machine or in Colab
 
-When working in Google Colab, you can easily pull data and model weights from your DVC remote:
+When you clone the repository or work in Google Colab, pull all tracked files:
 
-```python
-# In your Colab notebook
-!pip install dvc[gdrive]
-!dvc pull
+```bash
+dvc pull
 ```

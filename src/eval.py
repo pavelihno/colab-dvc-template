@@ -5,7 +5,6 @@ import numpy as np
 import mlflow
 
 from utils import load_config, generate_sample_data
-
 from model.sample import SampleNeuralNetwork
 
 
@@ -30,10 +29,7 @@ def evaluate_model(config, run_id=None):
     test_seed = data_config['test_seed']
 
     experiment_name = mlflow_config['experiment_name']
-    tracking_uri = mlflow_config['tracking_uri']
 
-    if tracking_uri:
-        mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_experiment(experiment_name)
 
     if not run_id:

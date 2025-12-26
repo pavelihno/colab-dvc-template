@@ -1,0 +1,6 @@
+outs:
+- md5: 4dbda86d20a4be3b291fa96f79409930.dir
+  size: 197056
+  nfiles: 77
+  hash: md5
+  path: mlruns
